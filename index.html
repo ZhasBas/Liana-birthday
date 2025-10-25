@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>С Днем Рождения!</title>
+    <style>
+        /* --- Общие стили --- */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden; /* Убираем общую прокрутку */
+        }
+
+        /* --- Секция с тортом --- */
+        #cake-section {
+            position: relative;
+            text-align: center;
+            cursor: pointer;
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out; /* Плавное исчезновение */
+            z-index: 10; /* Убедимся, что торт поверх всего */
+        }
+
+        #cake-section img {
+            max-width: 300px;
+            border-radius: 10px;
+        }
+
+        /* Сообщение "Нажми, чтобы задуть" */
+        #click-prompt {
+            margin-top: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+            animation: pulse 1.5s infinite;
+        }
+
+        /* Анимация пульсации для подсказки */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* --- Пламя свечи --- */
+        .flame {
+            position: absolute;
+            width: 16px;
+            height: 25px;
+            background-color: #FFC107; /* Желтый */
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            box-shadow: 0 0 10px #FFC107, 0 0 20px #FFC107, 0 0 30px #FFEB3B;
+            animation: flicker 1s infinite alternate;
+            transform-origin: bottom;
+            z-index: 11; /* Пламя поверх торта */
+        }
+        
+        /* Позиционирование "пламени" (нужно настроить под ваш торт) */
+        #flame1 { top: 35%; left: 47%; }
+        /* #flame2 { top: 32%; left: 35%; } */
+        /* #flame3 { top: 32%; left: 65%; } */
+
+
+        /* Анимация мерцания пламени */
+        @keyframes flicker {
+            0% { transform: scaleY(1) scaleX(1); opacity: 1; }
+            50% { transform: scaleY(0.9) scaleX(1.05); opacity: 0.8; }
+            100% { transform: scaleY(1.05) scaleX(1); opacity: 1; }
+        }
+
+        /* --- Секция с открытками (слайдер) --- */
+        #postcard-section {
+            position: fixed; /* Фиксируем на весь экран */
+            top: 0;
+            left: 0;
+            width: 100vw; /* Ширина вьюпорта */
+            height: 100vh; /* Высота вьюпорта */
+            opacity: 0; /* Изначально невидимы */
+            pointer-events: none; /* Пока неактивны, не реагируют на мышь */
+            transition: opacity 0.7s ease-in;
+            z-index: 5; /* Ниже секции торта */
+            background-color: #f0f2f5; /* Фон для открыток */
+            display: flex; /* Для центрирования слайдера */
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #postcard-section.active {
+            opacity: 1;
+            pointer-events: auto; /* Активируем взаимодействие после показа */
+        }
+
+        /* Контейнер-слайдер */
+        .slider-container {
+            display: flex;
+            overflow-x: auto; /* Включает горизонтальную прокрутку */
+            scroll-behavior: smooth; /* Плавная прокрутка */
+            
+            /* Магия "Свайпа" */
+            scroll-snap-type: x mandatory; /* Прилипание при прокрутке по оси X */
+            
+            /* Скрытие полосы прокрутки */
+            -ms-overflow-style: none;  /* IE и Edge */
+            scrollbar-width: none;  /* Firefox */
+            
+            width: 90%; /* Ширина слайдера */
+            height: 80%; /* Высота слайдера */
+        }
+        
+        /* Скрытие полосы прокрутки для Chrome, Safari, Opera */
+        .slider-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Отдельная открытка */
+        .card {
+            flex: 0 0 100%; /* Каждая карточка занимает 100% ширины видимого контейнера */
+            height: 100%; /* Карточка занимает всю высоту слайдера */
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15); /* Более выразительная тень */
+            
+            /* Прилипание к центру */
+            scroll-snap-align: center;
+
+            /* Внутреннее содержимое */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 30px; /* Увеличили padding */
+            box-sizing: border-box; /* Чтобы padding не ломал размеры */
+            font-size: 1.8rem; /* Увеличили шрифт */
+            text-align: center;
+            line-height: 1.5; /* Увеличили межстрочный интервал */
+            color: #444;
+        }
+        
+        /* Разные цвета для карточек для примера */
+        .card:nth-child(odd) { background-color: #e3f2fd; } /* Нечетные */
+        .card:nth-child(even) { background-color: #fff9c4; } /* Четные */
+
+
+        /* --- Классы для JS --- */
+        
+        /* Класс для полного скрытия элемента */
+        .hidden {
+            display: none !important; /* Важно, чтобы перебивать другие стили */
+            opacity: 0 !important;
+            transform: scale(0.8); /* Для эффекта "сжатия" при исчезновении */
+        }
+    </style>
+</head>
+<body>
+
+    <div id="cake-section">
+        
+        <img src="https://images.pexels.com/photos/1055272/pexels-photo-1055272.jpeg?auto=compress&cs=tinysrgb&w=600" alt="Торт со свечами">
+
+        <div class="flame" id="flame1"></div>
+        <div id="click-prompt">Нажми на торт, чтобы задуть свечи!</div>
+    </div>
+
+    <div id="postcard-section">
+        <div class="slider-container">
+            
+            <div class="card">
+                🥳 С Днем Рождения! 🥳<br><br>Пусть этот год будет полон ярких моментов!
+            </div>
+            <div class="card">
+                Желаю самого невероятного года, полного счастья, любви и успеха! 🌟
+            </div>
+            <div class="card">
+                Пусть все твои мечты сбываются, а каждый день приносит радость! 🚀
+            </div>
+            <div class="card">
+                Крепкого здоровья, неиссякаемой энергии и море искренних улыбок! 😊
+            </div>
+            <div class="card">
+                Искренне поздравляю! 🎉 <br>Желаю, чтобы каждый миг был особенным.
+            </div>
+
+        </div>
+    </div>
+
+
+    <script>
+        const cakeSection = document.getElementById('cake-section');
+        const flames = document.querySelectorAll('.flame');
+        const prompt = document.getElementById('click-prompt');
+        const postcardSection = document.getElementById('postcard-section');
+
+        cakeSection.addEventListener('click', blowOutCandles);
+
+        function blowOutCandles() {
+            // 1. Прячем все "огоньки"
+            flames.forEach(flame => {
+                flame.classList.add('hidden');
+            });
+
+            // 2. Прячем подсказку "Нажми..."
+            prompt.classList.add('hidden');
+            
+            // 3. Убираем возможность нажать еще раз
+            cakeSection.style.cursor = 'default';
+            cakeSection.removeEventListener('click', blowOutCandles);
+
+            // 4. Запускаем анимацию исчезновения торта
+            cakeSection.style.opacity = '0';
+            cakeSection.style.transform = 'translateY(-50px) scale(0.9)'; // Чуть приподнимем и сожмем
+
+            // 5. Ждем, пока торт исчезнет (длительность transition + небольшая задержка)
+            setTimeout(() => {
+                cakeSection.classList.add('hidden'); // Полностью удаляем из потока
+                
+                // 6. Показываем открытки
+                postcardSection.classList.add('active'); // Активируем открытки
+            }, 700); // 700 мс, чтобы анимация исчезновения торта успела отработать
+        }
+    </script>
+
+</body>
+</html>
