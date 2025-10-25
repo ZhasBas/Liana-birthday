@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>С Днем Рождения!</title>
     <style>
         /* --- Общие стили --- */
@@ -15,16 +15,16 @@
             flex-direction: column;
             min-height: 100vh;
             margin: 0;
-            overflow: hidden; /* Убираем общую прокрутку */
+            overflow: hidden; /* ОБЯЗАТЕЛЬНО: убираем прокрутку */
         }
 
-        /* --- Секция с тортом --- */
+        /* --- Секция с тортом (без изменений) --- */
         #cake-section {
             position: relative;
             text-align: center;
             cursor: pointer;
-            transition: opacity 0.5s ease-out, transform 0.5s ease-out; /* Плавное исчезновение */
-            z-index: 10; /* Убедимся, что торт поверх всего */
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+            z-index: 10;
         }
 
         #cake-section img {
@@ -32,7 +32,6 @@
             border-radius: 10px;
         }
 
-        /* Сообщение "Нажми, чтобы задуть" */
         #click-prompt {
             margin-top: 15px;
             font-size: 1.2rem;
@@ -41,148 +40,210 @@
             animation: pulse 1.5s infinite;
         }
 
-        /* Анимация пульсации для подсказки */
         @keyframes pulse {
             0% { transform: scale(1); }
             50% { transform: scale(1.05); }
             100% { transform: scale(1); }
         }
 
-        /* --- Пламя свечи --- */
         .flame {
             position: absolute;
             width: 16px;
             height: 25px;
-            background-color: #FFC107; /* Желтый */
+            background-color: #FFC107;
             border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
             box-shadow: 0 0 10px #FFC107, 0 0 20px #FFC107, 0 0 30px #FFEB3B;
             animation: flicker 1s infinite alternate;
             transform-origin: bottom;
-            z-index: 11; /* Пламя поверх торта */
+            z-index: 11;
         }
         
-        /* Позиционирование "пламени" (нужно настроить под ваш торт) */
         #flame1 { top: 35%; left: 47%; }
-        /* #flame2 { top: 32%; left: 35%; } */
-        /* #flame3 { top: 32%; left: 65%; } */
 
-
-        /* Анимация мерцания пламени */
         @keyframes flicker {
             0% { transform: scaleY(1) scaleX(1); opacity: 1; }
             50% { transform: scaleY(0.9) scaleX(1.05); opacity: 0.8; }
             100% { transform: scaleY(1.05) scaleX(1); opacity: 1; }
         }
-
-        /* --- Секция с открытками (слайдер) --- */
-        #postcard-section {
-            position: fixed; /* Фиксируем на весь экран */
+        
+        /* --- НОВАЯ СЕКЦИЯ: SWIPE APP --- */
+        
+        #swipe-app-section {
+            position: fixed;
             top: 0;
             left: 0;
-            width: 100vw; /* Ширина вьюпорта */
-            height: 100vh; /* Высота вьюпорта */
-            opacity: 0; /* Изначально невидимы */
-            pointer-events: none; /* Пока неактивны, не реагируют на мышь */
+            width: 100vw;
+            height: 100vh;
+            opacity: 0;
+            pointer-events: none;
             transition: opacity 0.7s ease-in;
-            z-index: 5; /* Ниже секции торта */
-            background-color: #f0f2f5; /* Фон для открыток */
-            display: flex; /* Для центрирования слайдера */
+            z-index: 5;
+            background-color: #f0f2f5;
+            display: flex;
             justify-content: center;
             align-items: center;
+            /* Запрещаем "выделение" текста при свайпе */
+            user-select: none; 
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
         }
         
-        #postcard-section.active {
+        #swipe-app-section.active {
             opacity: 1;
-            pointer-events: auto; /* Активируем взаимодействие после показа */
+            pointer-events: auto;
         }
 
-        /* Контейнер-слайдер */
-        .slider-container {
-            display: flex;
-            overflow-x: auto; /* Включает горизонтальную прокрутку */
-            scroll-behavior: smooth; /* Плавная прокрутка */
-            
-            /* Магия "Свайпа" */
-            scroll-snap-type: x mandatory; /* Прилипание при прокрутке по оси X */
-            
-            /* Скрытие полосы прокрутки */
-            -ms-overflow-style: none;  /* IE и Edge */
-            scrollbar-width: none;  /* Firefox */
-            
-            width: 90%; /* Ширина слайдера */
-            height: 80%; /* Высота слайдера */
+        /* Контейнер для стопки карточек */
+        #card-stack {
+            position: relative;
+            width: 90vw;
+            height: 80vh;
+            max-width: 400px; /* Ограничим макс. ширину */
+            max-height: 600px; /* Ограничим макс. высоту */
         }
         
-        /* Скрытие полосы прокрутки для Chrome, Safari, Opera */
-        .slider-container::-webkit-scrollbar {
-            display: none;
+        /* Сообщение, когда карточки закончатся */
+        #all-done-message {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.8rem;
+            color: #555;
+            font-weight: bold;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.3s ease-in;
+            z-index: 1; /* Под карточками */
+        }
+        
+        #all-done-message.visible {
+            opacity: 1;
         }
 
-        /* Отдельная открытка */
+        /* Стиль отдельной карточки */
         .card {
-            flex: 0 0 100%; /* Каждая карточка занимает 100% ширины видимого контейнера */
-            height: 100%; /* Карточка занимает всю высоту слайдера */
+            position: absolute; /* Все карточки лежат друг на друге */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background-color: white;
             border-radius: 15px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15); /* Более выразительная тень */
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
             
-            /* Прилипание к центру */
-            scroll-snap-align: center;
-
-            /* Внутреннее содержимое */
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 30px; /* Увеличили padding */
-            box-sizing: border-box; /* Чтобы padding не ломал размеры */
-            font-size: 1.8rem; /* Увеличили шрифт */
+            padding: 30px;
+            box-sizing: border-box;
+            font-size: 1.8rem;
             text-align: center;
-            line-height: 1.5; /* Увеличили межстрочный интервал */
+            line-height: 1.5;
             color: #444;
+            
+            /* Анимация возврата/ухода */
+            transition: transform 0.3s ease-out;
+            
+            /* Курсор "схватить" */
+            cursor: grab;
         }
         
-        /* Разные цвета для карточек для примера */
-        .card:nth-child(odd) { background-color: #e3f2fd; } /* Нечетные */
-        .card:nth-child(even) { background-color: #fff9c4; } /* Четные */
+        /* Когда мы активно тащим карточку */
+        .card.dragging {
+            transition: none; /* Убираем анимацию, чтобы следовало за курсором */
+            cursor: grabbing; /* Курсор "схватил" */
+        }
+        
+        /* Разные цвета для карточек */
+        .card:nth-child(odd) { background-color: #e3f2fd; }
+        .card:nth-child(even) { background-color: #fff9c4; }
 
+        /* "Лайк" / "Дизлайк" индикаторы */
+        .choice {
+            position: absolute;
+            top: 40px;
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-radius: 10px;
+            padding: 10px 15px;
+            opacity: 0; /* Изначально не видны */
+            transition: opacity 0.1s linear;
+        }
+        
+        .choice.like {
+            left: 20px;
+            color: #4CAF50;
+            border: 4px solid #4CAF50;
+            transform: rotate(-15deg);
+        }
+        
+        .choice.nope {
+            right: 20px;
+            color: #F44336;
+            border: 4px solid #F44336;
+            transform: rotate(15deg);
+        }
 
         /* --- Классы для JS --- */
-        
-        /* Класс для полного скрытия элемента */
         .hidden {
-            display: none !important; /* Важно, чтобы перебивать другие стили */
+            display: none !important;
             opacity: 0 !important;
-            transform: scale(0.8); /* Для эффекта "сжатия" при исчезновении */
+            transform: scale(0.8);
         }
     </style>
 </head>
 <body>
 
+    <!-- 1. СЕКЦИЯ С ТОРТОМ -->
     <div id="cake-section">
-        
-        <img src="https://images.pexels.com/photos/1055272/pexels-photo-1055272.jpeg?auto=compress&cs=tinysrgb&w=600" alt="Торт со свечами">
-
+        <img src="https://images.pexels.com/photos/1055272/pexels-photo-1055272.jpeg?auto-compress&cs=tinysrgb&w=600" alt="Торт со свечами">
         <div class="flame" id="flame1"></div>
         <div id="click-prompt">Нажми на торт, чтобы задуть свечи!</div>
     </div>
 
-    <div id="postcard-section">
-        <div class="slider-container">
+    <!-- 2. СЕКЦИЯ SWIPE APP -->
+    <div id="swipe-app-section">
+        <div id="card-stack">
+            
+            <!-- 
+                ВАЖНО: Карточки в HTML идут "снизу вверх".
+                Последняя карточка в коде будет показана первой (верхней).
+            -->
             
             <div class="card">
-                🥳 С Днем Рождения! 🥳<br><br>Пусть этот год будет полон ярких моментов!
+                Крепкого здоровья, неиссякаемой энергии и море искренних улыбок! 😊
+                <div class="choice like">Like</div>
+                <div class="choice nope">Nope</div>
             </div>
-            <div class="card">
-                Желаю самого невероятного года, полного счастья, любви и успеха! 🌟
-            </div>
+
             <div class="card">
                 Пусть все твои мечты сбываются, а каждый день приносит радость! 🚀
+                <div class="choice like">Like</div>
+                <div class="choice nope">Nope</div>
             </div>
+            
             <div class="card">
-                Крепкого здоровья, неиссякаемой энергии и море искренних улыбок! 😊
+                Желаю самого невероятного года, полного счастья, любви и успеха! 🌟
+                <div class="choice like">Like</div>
+                <div class="choice nope">Nope</div>
             </div>
+
             <div class="card">
-                Искренне поздравляю! 🎉 <br>Желаю, чтобы каждый миг был особенным.
+                🥳 С Днем Рождения! 🥳<br><br>Пусть этот год будет полон ярких моментов!
+                <div class="choice like">Like</div>
+                <div class="choice nope">Nope</div>
+            </div>
+            
+            <!-- Сообщение о том, что карточки закончились -->
+            <div id="all-done-message">
+                На сегодня все!<br>🎉🎁🎉
             </div>
 
         </div>
@@ -190,39 +251,192 @@
 
 
     <script>
+        // --- 1. ЛОГИКА ТОРТА (без изменений) ---
+        
         const cakeSection = document.getElementById('cake-section');
         const flames = document.querySelectorAll('.flame');
-        const prompt = document.getElementById('click-prompt');
-        const postcardSection = document.getElementById('postcard-section');
+        const promptEl = document.getElementById('click-prompt');
+        const swipeAppSection = document.getElementById('swipe-app-section');
 
         cakeSection.addEventListener('click', blowOutCandles);
 
         function blowOutCandles() {
-            // 1. Прячем все "огоньки"
-            flames.forEach(flame => {
-                flame.classList.add('hidden');
-            });
-
-            // 2. Прячем подсказку "Нажми..."
-            prompt.classList.add('hidden');
-            
-            // 3. Убираем возможность нажать еще раз
+            flames.forEach(flame => flame.classList.add('hidden'));
+            promptEl.classList.add('hidden');
             cakeSection.style.cursor = 'default';
             cakeSection.removeEventListener('click', blowOutCandles);
-
-            // 4. Запускаем анимацию исчезновения торта
             cakeSection.style.opacity = '0';
-            cakeSection.style.transform = 'translateY(-50px) scale(0.9)'; // Чуть приподнимем и сожмем
+            cakeSection.style.transform = 'translateY(-50px) scale(0.9)';
 
-            // 5. Ждем, пока торт исчезнет (длительность transition + небольшая задержка)
             setTimeout(() => {
-                cakeSection.classList.add('hidden'); // Полностью удаляем из потока
-                
-                // 6. Показываем открытки
-                postcardSection.classList.add('active'); // Активируем открытки
-            }, 700); // 700 мс, чтобы анимация исчезновения торта успела отработать
+                cakeSection.classList.add('hidden');
+                swipeAppSection.classList.add('active');
+                // Инициализируем стопку карточек, когда они стали видимы
+                initCards();
+            }, 700);
         }
-    </script>
 
+        // --- 2. НОВАЯ ЛОГИКА SWIPE APP ---
+        
+        const cardStack = document.getElementById('card-stack');
+        const allDoneMessage = document.getElementById('all-done-message');
+        
+        // Собираем все карточки (кроме последней - "All Done") в массив
+        let cards = Array.from(cardStack.querySelectorAll('.card'));
+        
+        let isDragging = false;
+        let activeCard = null;
+        let startX, currentX;
+        
+        function initCards() {
+            if (cards.length === 0) {
+                allDoneMessage.classList.add('visible');
+                return;
+            }
+
+            // Устанавливаем z-index и transform для "стопки"
+            cards.forEach((card, index) => {
+                card.style.zIndex = cards.length - index;
+                card.style.transform = `scale(${1 - (cards.length - 1 - index) * 0.05}) translateY(${(cards.length - 1 - index) * 10}px)`;
+            });
+            
+            // Получаем верхнюю карточку
+            activeCard = cards[cards.length - 1];
+            
+            // Назначаем обработчики событий
+            addEventListeners(activeCard);
+        }
+
+        function addEventListeners(card) {
+            // Для мыши
+            card.addEventListener('mousedown', dragStart);
+            // Для сенсорных экранов
+            card.addEventListener('touchstart', dragStart, { passive: true });
+        }
+        
+        function dragStart(e) {
+            if (isDragging) return;
+            isDragging = true;
+            
+            activeCard = e.currentTarget;
+            activeCard.classList.add('dragging');
+            
+            // Определяем начальную координату X
+            startX = e.pageX || e.touches[0].pageX;
+            
+            // Добавляем слушатели на всю страницу (для мыши)
+            document.addEventListener('mousemove', dragMove);
+            document.addEventListener('mouseup', dragEnd);
+            
+            // Добавляем слушатели на всю страницу (для сенсорных экранов)
+            document.addEventListener('touchmove', dragMove, { passive: true });
+            document.addEventListener('touchend', dragEnd, { passive: true });
+        }
+        
+        function dragMove(e) {
+            if (!isDragging || !activeCard) return;
+            
+            // Получаем текущую координату X
+            const currentX = e.pageX || e.touches[0].pageX;
+            
+            // Рассчитываем сдвиг
+            const deltaX = currentX - startX;
+            
+            // Рассчитываем угол поворота (чем дальше, тем сильнее наклон)
+            const rotation = deltaX * 0.1; 
+            
+            // Применяем transform: сдвиг + поворот
+            activeCard.style.transform = `translateX(${deltaX}px) rotate(${rotation}deg)`;
+            
+            // Показываем "Like" / "Nope"
+            updateChoiceOpacity(deltaX);
+        }
+        
+        function dragEnd(e) {
+            if (!isDragging || !activeCard) return;
+            isDragging = false;
+            
+            activeCard.classList.remove('dragging');
+
+            // Рассчитываем итоговый сдвиг
+            const deltaX = (e.pageX || e.changedTouches[0].pageX) - startX;
+            
+            // Порог для свайпа (например, 100px)
+            const swipeThreshold = activeCard.offsetWidth / 3; 
+
+            if (Math.abs(deltaX) > swipeThreshold) {
+                // Свайп засчитан
+                swipeOutCard(deltaX > 0);
+            } else {
+                // Возвращаем карточку на место
+                snapBackCard();
+            }
+
+            // Удаляем глобальные слушатели
+            document.removeEventListener('mousemove', dragMove);
+            document.removeEventListener('mouseup', dragEnd);
+            document.removeEventListener('touchmove', dragMove);
+            document.removeEventListener('touchend', dragEnd);
+        }
+
+        function updateChoiceOpacity(deltaX) {
+            const likeEl = activeCard.querySelector('.choice.like');
+            const nopeEl = activeCard.querySelector('.choice.nope');
+            
+            // Порог для начала показа
+            const opacityThreshold = 50; 
+            
+            // Очищаем opacity
+            likeEl.style.opacity = 0;
+            nopeEl.style.opacity = 0;
+
+            if (deltaX > opacityThreshold) {
+                // Свайп вправо (Like)
+                likeEl.style.opacity = (deltaX - opacityThreshold) / opacityThreshold;
+            } else if (deltaX < -opacityThreshold) {
+                // Свайп влево (Nope)
+                nopeEl.style.opacity = (Math.abs(deltaX) - opacityThreshold) / opacityThreshold;
+            }
+        }
+        
+        function swipeOutCard(isLike) {
+            // Сдвигаем карточку далеко за экран
+            const endX = isLike ? window.innerWidth : -window.innerWidth * 1.5;
+            activeCard.style.transform = `translateX(${endX}px) rotate(${isLike ? 15 : -15}deg)`;
+            
+            // Удаляем карточку из нашего массива
+            const swipedCard = cards.pop();
+            activeCard = null; // Больше нет активной карточки
+
+            // Ждем окончания CSS-анимации
+            swipedCard.addEventListener('transitionend', () => {
+                swipedCard.remove(); // Удаляем из DOM
+            }, { once: true });
+            
+            // Подготавливаем следующую карточку
+            if (cards.length > 0) {
+                const nextCard = cards[cards.length - 1];
+                // Выводим ее на передний план
+                nextCard.style.transform = 'scale(1) translateY(0)';
+                // Назначаем ей слушатели
+                addEventListeners(nextCard);
+            } else {
+                // Карточки закончились
+                allDoneMessage.classList.add('visible');
+            }
+        }
+
+        function snapBackCard() {
+            // Возвращаем на исходную позицию
+            const originalTransform = `scale(${1 - (cards.length - 1 - cards.indexOf(activeCard)) * 0.05}) translateY(${(cards.length - 1 - cards.indexOf(activeCard)) * 10}px)`;
+            
+            // Так как это всегда верхняя карта, то:
+            activeCard.style.transform = `scale(1) translateY(0) rotate(0deg)`;
+            
+            // Прячем "Like" / "Nope"
+            updateChoiceOpacity(0);
+        }
+
+    </script>
 </body>
 </html>
