@@ -1,183 +1,4 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>С Днем Рождения!</title>
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      background-color: #f0f2f5;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      min-height: 100vh;
-      margin: 0;
-      overflow: hidden;
-    }
-
-    #confetti-canvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      pointer-events: none;
-      z-index: 100;
-      opacity: 0;
-      transition: opacity 1s ease-in;
-    }
-
-    #cake-section {
-      position: relative;
-      text-align: center;
-      cursor: pointer;
-      transition: opacity 0.5s ease-out, transform 0.5s ease-out;
-      z-index: 10;
-    }
-
-    #cake-section img {
-      max-width: 300px;
-      border-radius: 10px;
-    }
-
-    #click-prompt {
-      margin-top: 15px;
-      font-size: 1.2rem;
-      font-weight: bold;
-      color: #333;
-      animation: pulse 1.5s infinite;
-    }
-
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-      100% { transform: scale(1); }
-    }
-
-    .flame {
-      position: absolute;
-      width: 16px;
-      height: 25px;
-      background-color: #FFC107;
-      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-      box-shadow: 0 0 10px #FFC107, 0 0 20px #FFC107, 0 0 30px #FFEB3B;
-      animation: flicker 1s infinite alternate;
-      transform-origin: bottom;
-      z-index: 11;
-    }
-    #flame1 { top: 35%; left: 47%; }
-
-    @keyframes flicker {
-      0% { transform: scaleY(1) scaleX(1); opacity: 1; }
-      50% { transform: scaleY(0.9) scaleX(1.05); opacity: 0.8; }
-      100% { transform: scaleY(1.05) scaleX(1); opacity: 1; }
-    }
-
-    #swipe-app-section {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.7s ease-in;
-      z-index: 5;
-      background-color: #f0f2f5;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      user-select: none;
-    }
-
-    #swipe-app-section.active {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    #card-stack {
-      position: relative;
-      width: 90vw;
-      height: 80vh;
-      max-width: 400px;
-      max-height: 600px;
-    }
-
-    .card {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: white;
-      border-radius: 15px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding: 30px;
-      box-sizing: border-box;
-      font-size: 1.8rem;
-      text-align: center;
-      line-height: 1.5;
-      color: #444;
-      cursor: grab;
-    }
-
-    .card img {
-      max-width: 80%;
-      height: auto;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    }
-
-    .card.dragging {
-      transition: none;
-      cursor: grabbing;
-    }
-
-    .card:nth-child(odd) { background-color: #e3f2fd; }
-    .card:nth-child(even) { background-color: #fff9c4; }
-
-    .hidden {
-      display: none !important;
-      opacity: 0 !important;
-      transform: scale(0.8);
-    }
-  </style>
-</head>
-<body>
-
-  <canvas id="confetti-canvas"></canvas>
-
-  <div id="cake-section">
-    <img src="https://images.pexels.com/photos/1055272/pexels-photo-1055272.jpeg?auto=compress&cs=tinysrgb&w=600" alt="Торт со свечами">
-    <div class="flame" id="flame1"></div>
-    <div id="click-prompt">Нажми на торт, чтобы задуть свечи!</div>
-  </div>
-
-  <div id="swipe-app-section">
-    <div id="card-stack">
-
-      <div class="card">Крепкого здоровья, неиссякаемой энергии и море искренних улыбок! 😊</div>
-      <div class="card">Пусть все твои мечты сбываются, а каждый день приносит радость! 🚀</div>
-
-      <!-- 🎁 карточка с картинкой -->
-      <div class="card">
-        <img src="lblb.jpg" alt="Подарок">
-        Желаю самого невероятного года, полного счастья, любви и успеха! 🌟
-      </div>
-
-      <div class="card">🥳 С Днем Рождения! 🥳<br><br>Пусть этот год будет полон ярких моментов!</div>
-
-    </div>
-  </div>
-
-  <script>
+<script>
 const cakeSection = document.getElementById('cake-section');
 const flames = document.querySelectorAll('.flame');
 const promptEl = document.getElementById('click-prompt');
@@ -261,6 +82,13 @@ function addCardEvents(card) {
 }
 
 function handleSwipeComplete(swipedCard) {
+  // ------------------------------------
+  // ИСПРАВЛЕНИЕ:
+  // Эта проверка не дает функции сработать несколько раз 
+  // из-за "наслоившихся" обработчиков событий
+  if (cards[0] !== swipedCard) return;
+  // ------------------------------------
+
   cards.shift();
   swipedCard.style.transition = 'none';
   swipedCard.style.transform = 'scale(0.9) translateY(20px)';
@@ -320,5 +148,3 @@ function animateConfetti() {
   requestAnimationFrame(animateConfetti);
 }
   </script>
-</body>
-</html>
